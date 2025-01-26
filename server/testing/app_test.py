@@ -33,14 +33,25 @@ class TestApp:
                 assert 'restaurant_pizzas' not in restaurant
 
     def test_restaurants_id(self):
-        '''retrieves one restaurant using its ID with GET request to /restaurants/<int:id>.'''
 
+    
         with app.app_context():
             fake = Faker()
+            # Create a restaurant
             restaurant = Restaurant(name=fake.name(), address=fake.address())
             db.session.add(restaurant)
             db.session.commit()
 
+            # Create a pizza (assuming you have a Pizza model)
+            pizza = Pizza(name=fake.word(), ingredients=fake.text())
+            db.session.add(pizza)
+            db.session.commit()
+
+            # Create a RestaurantPizza entry
+            restaurant_pizza = RestaurantPizza(price=10, restaurant_id=restaurant.id, pizza_id=pizza.id)
+            db.session.add(restaurant_pizza)
+            db.session.commit()
+        
             response = app.test_client().get(
                 f'/restaurants/{restaurant.id}')
             assert response.status_code == 200
@@ -49,8 +60,7 @@ class TestApp:
             assert response['id'] == restaurant.id
             assert response['name'] == restaurant.name
             assert response['address'] == restaurant.address
-            assert 'restaurant_pizzas' in response
-
+            assert 'restaurant_pizzas' in response  # This should now pass
     def test_returns_404_if_no_restaurant_to_get(self):
         '''returns an error message and 404 status code with GET request to /restaurants/<int:id> by a non-existent ID.'''
 
